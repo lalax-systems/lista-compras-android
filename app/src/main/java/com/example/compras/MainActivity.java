@@ -29,8 +29,10 @@ public class MainActivity extends AppCompatActivity {
         btnAdd = findViewById(R.id.btnAdd);
         lvItems = findViewById(R.id.lvItems);
 
-        // Inicializar lista y adaptador
-        itemList = new ArrayList<>();
+        // Cargar items guardados
+        itemList = DataStorage.loadItems(this);
+        
+        // Inicializar adaptador
         adapter = new ArrayAdapter<>(this, 
             android.R.layout.simple_list_item_1, itemList);
         lvItems.setAdapter(adapter);
@@ -61,12 +63,20 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Guardar items cuando la actividad se pausa
+        DataStorage.saveItems(this, itemList);
+    }
+
     private void addItem() {
         String item = etItem.getText().toString().trim();
         if (!item.isEmpty()) {
             itemList.add(item);
             adapter.notifyDataSetChanged();
             etItem.setText("");
+            saveItems();
             Toast.makeText(this, "Artículo añadido", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "Escribe un artículo", Toast.LENGTH_SHORT).show();
@@ -76,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
     private void removeItem(int position) {
         String removedItem = itemList.remove(position);
         adapter.notifyDataSetChanged();
+        saveItems();
         Toast.makeText(this, "Eliminado: " + removedItem, Toast.LENGTH_SHORT).show();
     }
 
@@ -84,7 +95,12 @@ public class MainActivity extends AppCompatActivity {
         if (!item.startsWith("✓ ")) {
             itemList.set(position, "✓ " + item);
             adapter.notifyDataSetChanged();
+            saveItems();
             Toast.makeText(this, "Marcado como comprado", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void saveItems() {
+        DataStorage.saveItems(this, itemList);
     }
 }
